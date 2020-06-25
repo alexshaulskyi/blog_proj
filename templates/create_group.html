@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}
+{% endblock %}
+
+{% block content %}
+{% load user_filters %}
+
+<form method="post">
+    {% csrf_token %} 
+    <div class="form-group">
+      <label> Название группы: </label>
+        {{ form.title }}
+    </div>
+    <div class="form-group">
+        <label> Идентификатор группы: </label>
+        {{ form.slug }}
+    </div>
+    <div class="form-check">
+        <label> Описание группы: </label>
+        {{ form.description }}
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+
+{% endblock %}
