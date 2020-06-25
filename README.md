@@ -26,4 +26,5 @@ Not all upgrades have been transferred yet. Expect further features to appear by
 ~~1) Email notifications to subscribers when author creates new post.~~
 <br>
 2) Unread posts in personal feed will have **'New'** tag next to their names until are read.
+<br>
 3) Minor group creation fixes to eliminate redundant actions.
