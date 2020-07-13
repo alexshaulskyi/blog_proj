@@ -17,6 +17,7 @@ class Post(models.Model):
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     group = models.ForeignKey(Group, blank=True, null=True, on_delete=models.CASCADE, related_name="posts")
     image = models.ImageField(upload_to='posts/', blank=True)
+    is_read = models.ManyToManyField(User, related_name='read_posts')
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")

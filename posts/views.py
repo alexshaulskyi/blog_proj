@@ -2,24 +2,27 @@ from django.core.paginator import Paginator
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect, get_object_or_404
 
-from .models import Post, Group, User, Follow
-from .forms import PostForm, CommentForm, GroupForm
+from posts.models import Post, Group, Follow
+from users.models import LogoutTime, User
+from posts.forms import PostForm, CommentForm, GroupForm
 
 
 def index(request):
+    last_logout = request.user.logout_time
     post_list = Post.objects.order_by('-pub_date').all()
     paginator = Paginator(post_list, 5) 
     page_number = request.GET.get('page') 
     page = paginator.get_page(page_number) 
-    return render(request, 'index.html', {'page': page, 'paginator': paginator})
+    return render(request, 'index.html', {'page': page, 'paginator': paginator, 'last_logout': last_logout})
 
 def group_posts(request, slug):
+    last_logout = request.user.logout_time
     group = get_object_or_404(Group, slug=slug)
     post_list = Post.objects.filter(group = group).order_by('-pub_date').all()
     paginator = Paginator(post_list, 5)
     page_number = request.GET.get('page')
     page = paginator.get_page(page_number)
-    return render(request, 'group.html', {'group':group, 'post_list':post_list, 'page':page, 'paginator': paginator})
+    return render(request, 'group.html', {'group':group, 'post_list':post_list, 'page':page, 'paginator': paginator, 'last_logout': last_logout})
 
 @login_required
 def create_group(request):
@@ -47,6 +50,7 @@ def new_post(request):
     return render(request, 'new.html', {'form':form})
 
 def profile(request, username):
+    last_logout = request.user.logout_time
     author = get_object_or_404(User, username=username)
     current_user = request.user
     following = current_user.is_authenticated and Follow.objects.filter(user=current_user, author=author).exists()
@@ -55,11 +59,13 @@ def profile(request, username):
     paginator = Paginator(post_list, 5)
     page_number = request.GET.get('page') 
     page = paginator.get_page(page_number) 
-    return render(request, 'profile.html', {'author':author, 'page':page, 'paginator': paginator, 'last_post':last_post, 'following':following})
+    return render(request, 'profile.html', {'author':author, 'page':page, 'paginator': paginator, 'last_post':last_post, 'following':following, 'last_logout': last_logout})
      
 
 def post_view(request, username, post_id):
     post = get_object_or_404(Post, id=post_id)
+    if not post.is_read.filter(id=request.user.id).exists() and request.user.is_authenticated:
+        post.is_read.add(request.user)      
     comments = post.comments.all()
     form = CommentForm()
     group = post.group
@@ -119,12 +125,13 @@ def post_delete(request, username, post_id):
 
 @login_required
 def follow_index(request):
+    last_logout = request.user.logout_time
     current_user = request.user
     posts = Post.objects.filter(author__following__user=current_user).order_by('-pub_date')
     paginator = Paginator(posts, 5)
     page_number = request.GET.get('page') 
     page = paginator.get_page(page_number)
-    return render(request, 'follow.html', {'page':page, 'paginator':paginator})
+    return render(request, 'follow.html', {'page':page, 'paginator':paginator, 'last_logout': last_logout})
 
 @login_required
 def profile_follow(request, username):
